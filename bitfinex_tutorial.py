@@ -15,20 +15,21 @@ async def hello(uri):
     "event": "subscribe",
     "channel": "book",
     "pair": "BTCUSD",
-    "prec": "P0"
+    "prec": "R0"
 })
 
     async with ws_connect(uri) as websocket:
+        await websocket.send(request)
+
         while True:
             try:
-                await websocket.send(request)
                 msg = await websocket.recv()
                 print(json.loads(msg))
 
-            except websockets.ConnectionClosed as exception:
+            except Exception as exception:
                 print(exception)
 
-            time.sleep(0.25)
+            # time.sleep(0.25)
 
             
 
