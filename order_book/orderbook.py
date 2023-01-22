@@ -1,5 +1,6 @@
 from order_book.order import Order
 from order_book.limit import Limit
+from order_book.side import Side
 
 from typing import Union,Dict
 
@@ -19,7 +20,36 @@ class OrderBook(object):
 
         return
 
-    def add_order(self, order:Order) -> None:
+    def initialize_orderbook(self, snapshot:list) -> None:
+        """
+        Method for processing the initial repreentation of the orderbook provided from bitfinex 
+        """
+        
+        for item in snapshot:
+            
+            #Check the orderbook works as expected
+            if item[2] == 0:
+                raise ("initialize_orderbook, unexpected error, initial snapshot should not contain 0 quantity orders.")
+
+            order = Order(
+                id = item[0],
+                price = item[1],
+                side = Side.CALL if item[2] > 0 else Side.ASK,
+                quantity = item[2] 
+                #TODO it may be more simple to make the quanitty absolute  
+            )
+
+            #check to see if the order in already in the order book
+            if order.id in self._all_orders.keys():
+                print(order)
+                print(self._all_orders[order.id])
+                input()
+
+            self._add_order(order)
+
+        return
+
+    def _add_order(self, order:Order) -> None:
         """
         Method to insert a new order 
         """
@@ -35,12 +65,15 @@ class OrderBook(object):
                 #order matches
                 self._limits[order.price].add_order(order)
             else:
-                raise Exception("Add order exception: Order, Limit miss match, should not reach this point")
+                print(self._limits[order.price].is_call)
+                print(order.is_call)
+                raise Exception(f"Add order exception: Order, Limit miss match, should not reach this point, orderid: {order.id}, price: {order.price}")
 
         else:
             #limit not found
             # create limit
             limit = Limit(order)
+            self._limits[order.price] = limit
       
         return
 

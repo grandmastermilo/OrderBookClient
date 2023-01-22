@@ -4,6 +4,6 @@ class Side(Enum):
     """
     Enum defining this side of the limit 
     """
-    Unknown = 0
+    UNK = 0
     CALL = 1
-    Ask = 2
+    ASK = 2

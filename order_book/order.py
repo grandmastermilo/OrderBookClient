@@ -21,4 +21,4 @@ class Order:
         """
         imutable prop returns the side of the order  
         """
-        self.side == Side.CALL
+        return self.side == Side.CALL

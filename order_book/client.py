@@ -21,11 +21,17 @@ class BitfinexClient(Thread):
         #TODO clean this
         super(BitfinexClient, self).__init__(name='demo', daemon=True)
 
+        #subscribing message to raw order books
         self.OB_request = json.dumps({
             "event": "subscribe",
             "channel": "book",
             "pair": "BTCUSD",
             "prec": "R0"
+        })
+
+        #subscribing message to checksums
+        self.CS_request = json.dumps({
+            'event': 'conf', 'flags': 131072 
         })
 
 
@@ -45,6 +51,7 @@ class BitfinexClient(Thread):
             self.ws = await ws_connect('wss://api-pub.bitfinex.com/ws/2')
 
             await self.ws.send(self.OB_request)
+            await self.ws.send(self.CS_request)
 
             while True:
                 self.queue.put(json.loads(await self.ws.recv()))
