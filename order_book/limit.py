@@ -53,6 +53,14 @@ class Limit(object):
         """
         return self._side == Side.CALL
 
+    @property
+    def fifo_order(self) -> int:
+        """
+        Imutable, an order id for the fist order in the queue 
+        """
+        return self._orders[0]
+
+
 
     def add_order(self, order:Order) -> None:
         """
@@ -61,6 +69,27 @@ class Limit(object):
         @param order: the incoming order to store in a FIFO system 
         """
         self._orders.append(order.id)
+
+
+    def pop_order(self) -> bool:
+        """
+        Method for consuming orders in FIFO
+
+        @return: True if limit contains orders after the pop
+        """
+        if len(self._orders) == 1:
+            #the last remaining order is consumed
+            self._orders = []
+            #convert the limit to unknown side
+            self._side = Side.UNK
+            
+            return False
+        
+        else:
+            self._orders = self._orders[1:]
+            
+            return True 
+
 
 
     def remove_order(self, order:Order) -> None:

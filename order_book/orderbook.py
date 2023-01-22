@@ -15,6 +15,8 @@ class OrderBook(object):
 
         self._limits:Dict[Union[int,float], Limit] = {} # price id
 
+
+        #TODO orderbook statistics will be handled once the structure is verified
         self._best_ask = None
         self._best_call = None
 
@@ -43,6 +45,27 @@ class OrderBook(object):
 
         return
 
+    def process_order(self, order:Order) -> None:
+        """
+        Method to handle incoming order, acts as a switch board to determine which action to take given the current orderbook and the order 
+        """
+        #quantity 0 requires deleting an existing order
+        if order.quantity == 0:
+            self._delete_order(order)
+            return
+
+        #check if the order exists and requires updating
+        if order.id in self._all_orders.keys():
+            self._update_order(order)
+
+
+        # add order
+        self._add_order(order)
+
+        return 
+        
+
+
     def _add_order(self, order:Order) -> None:
         """
         Method to insert a new order 
@@ -53,13 +76,17 @@ class OrderBook(object):
         # get limit 
         if order.price in self._limits.keys():
 
-            # limit found
+            # retrieve the limit
+            limit = self._limits[order.price]
+
             # check limit side match
-            if self._limits[order.price].is_call == order.is_call:
+            if limit.is_call == order.is_call:
                 #order matches
                 self._limits[order.price].add_order(order)
             else:
-                raise Exception(f"Add order exception: Order, Limit miss match, should not reach this point, orderid: {order.id}, price: {order.price}")
+                # Market order has been made as opposing side
+                self._process_match(order, limit)
+                # raise Exception(f"Add order exception: Order, Limit miss match, should not reach this point, orderid: {order.id}, price: {order.price}")
 
         else:
             #limit not found -- create and store limit
@@ -68,7 +95,7 @@ class OrderBook(object):
       
         return
 
-    def update_order(self, order:Order) -> None:
+    def _update_order(self, order:Order) -> None:
         """
         Method to update an order 
         """
@@ -95,7 +122,7 @@ class OrderBook(object):
 
         return
 
-    def delete_order(self, order:Order) -> None:
+    def _delete_order(self, order:Order) -> None:
         """
         Method to delete an order  
         """
@@ -108,13 +135,42 @@ class OrderBook(object):
         else:
             raise Exception("Delete order exception: Order price not a Limit, should not reach this point")
 
-    def _process_match(self):
+    def _process_match(self, order:Order, limit:Limit):
         """
         Method to determine if a market order was mad
+        - called when an incoming order matches an existing limit but on an opposing side
 
-        - checks for arrival of order that matches an opposing order 
         - matching incoming orders are filled (counted as market order)
-        - order must be netted 
+        - orders must be netted 
         - market orders that consume limit orders but consume orders FIFO 
+        - limit can switch sides if all order in the limit are filled and the incoming orders net > 0
         """
+
+        #until the incoming order has been consumed by existing limit orders
+        while True:
+            #TODO case incoming order has mass, limit is empty
+            #retreive the first order in the limit 
+            limit_order = self._all_orders[limit.fifo_order]
+
+            if abs(limit_order.quantity) <= abs(order.quantity):
+                
+                #net the order quantity - note CALL/ASK have opsoing signs
+                order.quantity += limit_order.quantity
+                limit.pop_order()
+
+                # remove the filled limit order from the book
+                self._delete_order(limit_order)
+
+                if order.quantity == 0:
+                    # the market order has been filled
+                    break
+                
+            elif abs(limit_order.quantity) > abs(order.quantity):
+
+                # net the existing limit order 
+                limit_order.quantity += order.quantity
+
+    
+
+
     
