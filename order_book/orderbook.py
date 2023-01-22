@@ -39,12 +39,6 @@ class OrderBook(object):
                 #TODO it may be more simple to make the quanitty absolute  
             )
 
-            #check to see if the order in already in the order book
-            if order.id in self._all_orders.keys():
-                print(order)
-                print(self._all_orders[order.id])
-                input()
-
             self._add_order(order)
 
         return
@@ -65,13 +59,10 @@ class OrderBook(object):
                 #order matches
                 self._limits[order.price].add_order(order)
             else:
-                print(self._limits[order.price].is_call)
-                print(order.is_call)
                 raise Exception(f"Add order exception: Order, Limit miss match, should not reach this point, orderid: {order.id}, price: {order.price}")
 
         else:
-            #limit not found
-            # create limit
+            #limit not found -- create and store limit
             limit = Limit(order)
             self._limits[order.price] = limit
       
@@ -81,6 +72,27 @@ class OrderBook(object):
         """
         Method to update an order 
         """
+        # retreive the previus order
+        prev_order = self._all_orders[order.id]
+
+        #order updates should not be in opposite side
+        if not prev_order.is_call == order.is_call:
+            raise Exception('update_order, Error when updating an order, side miss match')
+
+        # update the order 
+        prev_order.quantity = order.quantity
+
+        #check for limit change
+        if not prev_order.price == order.price:
+            
+            # remove order from limit
+            self._limits[prev_order.price].remove_order(prev_order)
+            #update order price
+            prev_order.price = order.price
+            
+            #store the order in the correct limit
+            self._add_order(prev_order)
+
         return
 
     def delete_order(self, order:Order) -> None:
