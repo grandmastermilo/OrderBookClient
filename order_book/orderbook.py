@@ -37,8 +37,7 @@ class OrderBook(object):
                 id = item[0],
                 price = item[1],
                 side = Side.CALL if item[2] > 0 else Side.ASK,
-                quantity = item[2] 
-                #TODO it may be more simple to make the quanitty absolute  
+                quantity = item[2]
             )
 
             self._add_order(order)
@@ -50,7 +49,7 @@ class OrderBook(object):
         Method to handle incoming order, acts as a switch board to determine which action to take given the current orderbook and the order 
         """
         #quantity 0 requires deleting an existing order
-        if order.quantity == 0:
+        if order.price == 0:
             self._delete_order(order)
             return
 
@@ -129,11 +128,15 @@ class OrderBook(object):
         """
         Method to delete an order  
         """
-        del self._all_orders[order.id]
+        #get the order price
+        order_price = self._all_orders[order.id].price
 
         # assert the order price is stored in a limit
-        if order.price in self._limits.keys():
-            self._limits[order.price].remove_order(order)
+        if order_price in self._limits.keys():
+            self._limits[order_price].remove_order(order)
+            
+            #remove the order from memory
+            del self._all_orders[order.id]
 
         else:
             raise Exception("Delete order exception: Order price not a Limit, should not reach this point")
@@ -178,7 +181,7 @@ class OrderBook(object):
 
                 # net the existing limit order 
                 limit_order.quantity += order.quantity
-                
+
                 del self._all_orders[order.id]
                 break
 

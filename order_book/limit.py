@@ -28,7 +28,7 @@ class Limit(object):
         self._side = order.side
 
         #list for storing orders in order of being created
-        self._orders = [] 
+        self._orders = [order.id] 
 
         #TODO variables below are used primarily for tracking metrics fix after confirming the orderbook functionality
         self._notional = order.price*order.quantity

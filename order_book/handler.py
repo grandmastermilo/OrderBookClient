@@ -1,5 +1,6 @@
 from order_book.orderbook import OrderBook
-
+from order_book.side import Side
+from order_book.order import Order
 
 class Handler:
 
@@ -66,6 +67,7 @@ class Handler:
 
             if message[1] == 'cs':
                 #checksum message found - confirm our orderbook is correct
+                input()
                 self._handle_checksum(message)
 
             if message[1] == 'hb':
@@ -77,7 +79,15 @@ class Handler:
                 self._orderbook.initialize_orderbook(message[1])
 
             else:
-                print(message)
+                item = message[1]
+                order = Order(
+                    id = item[0],
+                    price = item[1],
+                    side = Side.CALL if item[2] > 0 else Side.ASK, #delete order will have 0 quantity, side is UNK but this is handled by the qty
+                    quantity = item[2] 
+                )
+                self._orderbook.process_order(order)
+                
 
 
         return
