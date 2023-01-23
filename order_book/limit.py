@@ -25,7 +25,6 @@ class Limit(object):
         # Main Limit attirbutes contain stats about the limit's current state
         self._price = order.price
         self._quantity = order.quantity
-        self._count = 1
         self._side = order.side
 
         #list for storing orders in order of being created
@@ -33,6 +32,7 @@ class Limit(object):
 
         #TODO variables below are used primarily for tracking metrics fix after confirming the orderbook functionality
         self._notional = order.price*order.quantity
+        self._count = 1
         
 
         #Limit historical statistics
@@ -52,6 +52,13 @@ class Limit(object):
         Imutable prop returns the side of the limit.
         """
         return self._side == Side.CALL
+
+    @property
+    def is_unk(self) -> bool:
+        """
+        Imutable prop returns the side of the limit.
+        """
+        return self._side == Side.UNK
 
     @property
     def fifo_order(self) -> int:
@@ -101,6 +108,20 @@ class Limit(object):
         @param order: the incoming order to store in a FIFO system 
         """
         self._orders.remove(order.id)
+
+
+    
+    def switch(self, order:Order) -> None:
+        """
+        Method called for switching the limit side 
+
+        occurs if the limit was cleared by incoming orders
+        and the incoming orders take the limit 
+        """
+        self._orders.append(order.id)
+        self._side = order.side
+        self._quantity = order.quantity
+
 
     
 

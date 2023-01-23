@@ -83,6 +83,9 @@ class OrderBook(object):
             if limit.is_call == order.is_call:
                 #order matches
                 self._limits[order.price].add_order(order)
+            elif limit.is_unk:
+                #the limit exists but is empty
+                limit.switch(order)
             else:
                 # Market order has been made as opposing side
                 self._process_match(order, limit)
@@ -149,6 +152,11 @@ class OrderBook(object):
         #until the incoming order has been consumed by existing limit orders
         while True:
             #TODO case incoming order has mass, limit is empty
+            if limit.is_unk:
+                #this is the case where a limit much switch sides
+                limit.switch(order)
+                break
+
             #retreive the first order in the limit 
             limit_order = self._all_orders[limit.fifo_order]
 
@@ -163,12 +171,16 @@ class OrderBook(object):
 
                 if order.quantity == 0:
                     # the market order has been filled
+                    del self._all_orders[order.id]
                     break
                 
             elif abs(limit_order.quantity) > abs(order.quantity):
 
                 # net the existing limit order 
                 limit_order.quantity += order.quantity
+                
+                del self._all_orders[order.id]
+                break
 
     
 
