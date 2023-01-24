@@ -67,8 +67,7 @@ class Handler:
 
             if message[1] == 'cs':
                 #checksum message found - confirm our orderbook is correct
-                input()
-                self._handle_checksum(message)
+                self._orderbook.check_sum(message[2])
 
             if message[1] == 'hb':
                 #heartbeat received ignore this

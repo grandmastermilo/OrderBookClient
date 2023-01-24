@@ -3,6 +3,8 @@ from order_book.limit import Limit
 from order_book.side import Side
 
 from typing import Union,Dict
+import binascii
+import json
 
 class OrderBook(object):
 
@@ -184,6 +186,109 @@ class OrderBook(object):
 
                 del self._all_orders[order.id]
                 break
+
+
+    def check_sum(self, target) -> None:
+        """
+        Method to verify our book is alligned with bitfinex
+
+        - requires the 25 lowest asks/bids as json
+
+        [
+            bids[0].id, 
+            bids[0].amount, 
+            asks[0].id, 
+            asks[0].amount, 
+            bids[1].id, 
+            bids[1].amount, 
+            ...
+            bids[24].id, 
+            bids[24].amount, 
+            asks[24].id, 
+            asks[24].amount,
+        ]
+        """
+        best_call_limit = None
+        best_ask_limit = None
+        best_call_index = None
+        best_ask_index = None
+        
+        # get limits -> asks -> calls
+        limit_prices = sorted(self._limits.keys(), reverse=True)
+
+
+        
+        # iterate limit to find highest bid
+        for i, price in enumerate(limit_prices):
+            
+            if self._limits[price].is_call:
+                #highest bid found
+                #store intial values
+                best_call_limit = self._limits[price]
+                best_call_index = i
+                best_ask_limit = self._limits[limit_prices[i-1]]
+                best_ask_index = i-1
+                break
+
+        # create storage for checksum values
+        cs = []
+        calls = []
+        asks = []
+
+        # print(best_call_index)
+        # print(best_ask_index)
+        # print(len(limit_prices))
+        # input()
+        while len(calls) < 25:
+            # print(len(calls))
+            # input()
+
+            calls += best_call_limit._orders
+            
+            best_call_index += 1
+            best_call_limit = self._limits[limit_prices[best_call_index]]
+
+            assert best_call_limit.is_call
+
+
+        while len(asks) < 25:
+            asks += best_ask_limit._orders
+            best_ask_index -= 1
+            best_ask_limit = self._limits[limit_prices[best_ask_index]]
+
+            assert best_call_limit.is_call
+
+        calls = calls[:25]
+        asks = asks[:25]
+
+        for i in range(25):
+            try:
+                call_order = self._all_orders[calls[i]]
+                ask_order = self._all_orders[asks[i]]
+            except:
+                print(calls[i])
+                input()
+            assert call_order.is_call
+            assert not ask_order.is_call
+            
+            cs.append(call_order.id)
+            cs.append(call_order.quantity)
+            cs.append(ask_order.id)
+            cs.append(ask_order.quantity)
+
+        cs = ':'.join(str(x) for x in cs)
+        cs = binascii.crc32(cs.encode('utf8'))
+
+        print(target & 0xFFFFFFFF)
+        print(cs & 0xFFFFFFFF)
+      
+        input()
+        return
+
+        
+
+
+    
 
     
 
