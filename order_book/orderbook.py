@@ -264,10 +264,20 @@ class OrderBook(object):
         for i in range(25):
             try:
                 call_order = self._all_orders[calls[i]]
+            except:
+                print('calls')
+                print(calls[i])
+                print(self._all_orders.keys())
+                input()
+
+            try:
                 ask_order = self._all_orders[asks[i]]
             except:
-                print(calls[i])
+                print('asks')
+                print(asks[i])
+                print(self._all_orders.keys())
                 input()
+
             assert call_order.is_call
             assert not ask_order.is_call
             
