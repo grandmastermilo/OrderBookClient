@@ -51,6 +51,7 @@ def test_add_order():
     # CASE 1 ------------------------------------ order new limit
     assert 2225 in orderbook._limits.keys()
     assert 5 in orderbook._all_orders.keys()
+    assert orderbook._all_orders[order.id].side == Side.ASK
 
 
     order = Order(
@@ -116,15 +117,53 @@ def test_update_order():
     assert order.id == orderbook._limits[2224]._orders[-1]
 
 
-    # CASE 2 ----------------------------------- update price and qunatity
+    # CASE 3 ----------------------------------- update price and qunatity
+
+
+    # CASE 4 ----------------------------------- update price to market order
 
     
     return
 
 
-# def test_process_match():
+def test_process_match():
 
-#     return 
+
+    orderbook = OrderBook()
+    snapshot =  [[1, 2222, 0.1], [2, 2223, 0.2], [3,2223, 0.3], [4, 2224, 0.1]]
+
+    orderbook.initialize_orderbook(snapshot)
+
+
+
+    # CASE 1 ----------------------------------- incoming order less than FIFO order
+
+    order = Order(
+        id = 5, price=2222, side=Side.ASK, quantity=-0.05
+    )
+
+    #this will get passed to _process_math
+    orderbook._add_order(order)
+   
+    assert order.id not in orderbook._all_orders.keys()
+    assert orderbook._limits[order.price]._side == Side.CALL
+    assert orderbook._all_orders[1].quantity == 0.05 
+
+
+    # CASE 2 ----------------------------------- incoming greater than FIFO order
+
+
+    order = Order(
+        id=6, price=2222, side=Side.ASK, quantity=0.1
+    )
+
+    orderbook._add_order(order)
+
+    assert order.id in orderbook._all_orders.keys()
+    assert order.id in orderbook._limits[order.price]._orders
+    assert orderbook._limits[order.price].is_call == order.is_call
+
+    # CASE 3 ----------------------------------- incoming consumes limit
 
 
 

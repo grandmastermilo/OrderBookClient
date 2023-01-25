@@ -74,9 +74,10 @@ class OrderBook(object):
         # store order to OB history
         self._all_orders[order.id] = order
 
+       
         # get limit 
         if order.price in self._limits.keys():
-
+            
             # retrieve the limit
             limit = self._limits[order.price]
 
@@ -151,7 +152,7 @@ class OrderBook(object):
         - market orders that consume limit orders but consume orders FIFO 
         - limit can switch sides if all order in the limit are filled and the incoming orders net > 0
         """
-
+    
         #until the incoming order has been consumed by existing limit orders
         while True:
             #TODO case incoming order has mass, limit is empty
@@ -170,7 +171,7 @@ class OrderBook(object):
                 limit.pop_order()
 
                 # remove the filled limit order from the book
-                self._delete_order(limit_order)
+                del self._all_orders[limit_order.id]
 
                 if order.quantity == 0:
                     # the market order has been filled
@@ -178,7 +179,7 @@ class OrderBook(object):
                     break
                 
             elif abs(limit_order.quantity) > abs(order.quantity):
-
+            
                 # net the existing limit order 
                 limit_order.quantity += order.quantity
 
@@ -216,6 +217,10 @@ class OrderBook(object):
         # get limits -> asks -> calls
         limit_prices = sorted(self._limits.keys(), reverse=True)
 
+        # for i, price in enumerate(limit_prices):
+        #     print(self._limits[price]._price,self._limits[price]._side )
+        #     input()
+
 
         
         # iterate limit to find highest bid
@@ -246,15 +251,24 @@ class OrderBook(object):
             best_call_index += 1
             best_call_limit = self._limits[limit_prices[best_call_index]]
 
-            assert best_call_limit.is_call
-
+            try:
+                assert best_call_limit.is_call or best_call_limit.is_unk
+            except:
+                raise Exception(
+                    f'calls, Incorrect limit ordering in book, {best_call_limit}'
+                )
 
         while len(asks) < 25:
             asks += sorted(best_ask_limit._orders)
             best_ask_index -= 1
             best_ask_limit = self._limits[limit_prices[best_ask_index]]
-
-            assert best_call_limit.is_call
+        
+            try:
+                assert not best_ask_limit.is_call or best_ask_limit.is_unk
+            except:
+                raise Exception(
+                    f'asks, Incorrect limit ordering in book, {best_ask_limit}'
+                )
 
         calls = calls[:25]
         asks = asks[:25]

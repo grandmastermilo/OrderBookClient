@@ -46,6 +46,9 @@ class Limit(object):
 
         return 
 
+    def __repr__(self):
+        return f'price:{self._price}, side:{self._side}, quant:{self._quantity}'
+
     @property
     def is_call(self) -> bool:
         """
