@@ -240,10 +240,6 @@ class OrderBook(object):
         calls = []
         asks = []
 
-        # print(best_call_index)
-        # print(best_ask_index)
-        # print(len(limit_prices))
-        # input()
         while len(calls) < 25:
          
             calls += sorted(best_call_limit._orders)
