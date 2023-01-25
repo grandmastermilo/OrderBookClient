@@ -115,14 +115,12 @@ class OrderBook(object):
 
         #check for limit change
         if not prev_order.price == order.price:
-            
+       
             # remove order from limit
             self._limits[prev_order.price].remove_order(prev_order)
-            #update order price
-            prev_order.price = order.price
             
             #store the order in the correct limit
-            self._add_order(prev_order)
+            self._add_order(order)
 
         return
 
@@ -138,7 +136,7 @@ class OrderBook(object):
             self._limits[order_price].remove_order(order)
             
             #remove the order from memory
-            del self._all_orders[order.id]
+            del self._all_orders[order.id] 
 
         else:
             raise Exception("Delete order exception: Order price not a Limit, should not reach this point")
@@ -193,6 +191,8 @@ class OrderBook(object):
         Method to verify our book is alligned with bitfinex
 
         - requires the 25 lowest asks/bids as json
+        - When compiling checksum data, the order book must be sorted by price. For bids, price values must be descending. For asks, price values must be ascending.
+        - Orders of the same price (for raw books) will need to be sub-sorted by ID in an ascending order (the lower index holds the lower id by numeric value).
 
         [
             bids[0].id, 
@@ -240,10 +240,8 @@ class OrderBook(object):
         # print(len(limit_prices))
         # input()
         while len(calls) < 25:
-            # print(len(calls))
-            # input()
-
-            calls += best_call_limit._orders
+         
+            calls += sorted(best_call_limit._orders)
             
             best_call_index += 1
             best_call_limit = self._limits[limit_prices[best_call_index]]
@@ -252,7 +250,7 @@ class OrderBook(object):
 
 
         while len(asks) < 25:
-            asks += best_ask_limit._orders
+            asks += sorted(best_ask_limit._orders)
             best_ask_index -= 1
             best_ask_limit = self._limits[limit_prices[best_ask_index]]
 
@@ -285,6 +283,8 @@ class OrderBook(object):
             cs.append(call_order.quantity)
             cs.append(ask_order.id)
             cs.append(ask_order.quantity)
+
+        print(len(cs))
 
         cs = ':'.join(str(x) for x in cs)
         cs = binascii.crc32(cs.encode('utf8'))

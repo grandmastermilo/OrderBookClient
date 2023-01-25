@@ -65,9 +65,69 @@ def test_add_order():
 
 
 
-def test_update_order():
+def test_remove_order():
 
+    orderbook = OrderBook()
+    snapshot =  [[1, 2222, 0.1], [2, 2223, 0.2], [3,2223, 0.3], [4, 2224, -0.1]]
+
+    orderbook.initialize_orderbook(snapshot)
+
+    order = Order(
+        id = 1, price=0, side=Side.ASK, quantity=-0.1
+    )
+
+    orderbook._delete_order(order)
+
+    assert 1 not in orderbook._all_orders.keys()
+    assert orderbook._limits[2222]._side == Side.UNK
+    assert 1 not in orderbook._limits[2222]._orders
+
+
+    
+
+def test_update_order():
+    
+    orderbook = OrderBook()
+    snapshot =  [[1, 2222, 0.1], [2, 2223, 0.2], [3,2223, 0.3], [4, 2224, 0.1]]
+
+    orderbook.initialize_orderbook(snapshot)
+
+    # CASE 1 ----------------------------------- update quantity
+    order = Order(
+        id = 1, price=2222, side=Side.CALL, quantity=0.2
+    )
+
+    orderbook._update_order(order)
+
+    assert orderbook._all_orders[1].quantity == 0.2
+    assert orderbook._all_orders[1].side == Side.CALL
+    assert orderbook._all_orders[1].price == 2222
+
+    # CASE 2 ----------------------------------- update price 
+
+    order = Order(
+        id = 2, price=2224, side=Side.CALL, quantity=0.2
+    )
+
+    orderbook._update_order(order)
+
+    assert order.id in orderbook._all_orders.keys()
+    assert order.id not in orderbook._limits[2223]._orders
+    assert order.id == orderbook._limits[2224]._orders[-1]
+
+
+    # CASE 2 ----------------------------------- update price and qunatity
+
+    
     return
+
+
+# def test_process_match():
+
+#     return 
+
+
+
 
 
 

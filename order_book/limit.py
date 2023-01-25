@@ -105,9 +105,21 @@ class Limit(object):
 
         - used for order canclation NOT order match
 
-        @param order: the incoming order to store in a FIFO system 
+        @param order: 
         """
-        self._orders.remove(order.id)
+
+        if len(self._orders) == 1:
+            self._orders.remove(order.id)
+            #convert the limit to unknown side
+            self._side = Side.UNK
+            
+            return False
+
+        else:
+            self._orders.remove(order.id)
+            return True
+
+
 
 
     
