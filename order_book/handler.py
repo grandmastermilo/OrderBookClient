@@ -43,6 +43,12 @@ class Handler:
         self._channel = None
         self._orderbook = orderbook
 
+        #Used for debugging purposes allows us to replay historical ticks causing bugs
+        self._log_ticks = False
+        
+        self._file = 'stream_logs.txt' if self._log_ticks else None
+
+
 
     def on_message(self, message) -> None:
         """
@@ -63,8 +69,13 @@ class Handler:
 
 
         if isinstance(message, list):
-            # receiving orderbook information or check sum
+            
+            if self._log_ticks:
+                #save the incoming data to log file
+                with open(self._file, 'a') as file:
+                    file.write(str(message)+'\n')
 
+            # receiving orderbook information or check sum
             if message[1] == 'cs':
                 #checksum message found - confirm our orderbook is correct
                 self._orderbook.check_sum(message[2])

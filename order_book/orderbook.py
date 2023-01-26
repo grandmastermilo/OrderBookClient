@@ -14,7 +14,6 @@ class OrderBook(object):
         """
 
         self._all_orders:Dict[int, Order] = {} # order id
-
         self._limits:Dict[Union[int,float], Limit] = {} # price id
 
 
@@ -85,6 +84,7 @@ class OrderBook(object):
             if limit.is_call == order.is_call:
                 #order matches
                 self._limits[order.price].add_order(order)
+
             elif limit.is_unk:
                 #the limit exists but is empty
                 limit.switch(order)
@@ -116,11 +116,16 @@ class OrderBook(object):
 
         #check for limit change
         if not prev_order.price == order.price:
-       
+            print("here ----", order.id)
+
+            input()
+
             # remove order from limit
             self._limits[prev_order.price].remove_order(prev_order)
             
             #store the order in the correct limit
+
+            print(order.price)
             self._add_order(order)
 
         return
@@ -275,6 +280,7 @@ class OrderBook(object):
             except:
                 print('calls')
                 print(calls[i])
+                print(calls)
                 print(self._all_orders.keys())
                 input()
 
@@ -283,6 +289,7 @@ class OrderBook(object):
             except:
                 print('asks')
                 print(asks[i])
+                print(asks)
                 print(self._all_orders.keys())
                 input()
 
