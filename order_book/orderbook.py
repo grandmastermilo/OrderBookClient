@@ -215,12 +215,6 @@ class OrderBook(object):
         
         # get limits -> asks -> calls
         limit_prices = sorted(self._limits.keys(), reverse=True)
-
-        # for i, price in enumerate(limit_prices):
-        #     print(self._limits[price]._price,self._limits[price]._side )
-        #     input()
-
-
         
         # iterate limit to find highest bid
         for i, price in enumerate(limit_prices):
@@ -244,7 +238,12 @@ class OrderBook(object):
             calls += sorted(best_call_limit._orders)
             
             best_call_index += 1
-            best_call_limit = self._limits[limit_prices[best_call_index]]
+
+            try:
+                best_call_limit = self._limits[limit_prices[best_call_index]]
+            except:
+                #all calls are in the cs
+                break
 
             try:
                 assert best_call_limit.is_call or best_call_limit.is_unk
@@ -256,8 +255,13 @@ class OrderBook(object):
         while len(asks) < 25:
             asks += sorted(best_ask_limit._orders)
             best_ask_index -= 1
-            best_ask_limit = self._limits[limit_prices[best_ask_index]]
-        
+
+            try:
+                best_ask_limit = self._limits[limit_prices[best_ask_index]]
+            except:
+                #all asks are in the cs
+                break
+
             try:
                 assert not best_ask_limit.is_call or best_ask_limit.is_unk
             except:
@@ -269,23 +273,10 @@ class OrderBook(object):
         asks = asks[:25]
 
         for i in range(25):
-            try:
-                call_order = self._all_orders[calls[i]]
-            except:
-                print('calls')
-                print(calls[i])
-                print(calls)
-                print(self._all_orders.keys())
-                input()
-
-            try:
-                ask_order = self._all_orders[asks[i]]
-            except:
-                print('asks')
-                print(asks[i])
-                print(asks)
-                print(self._all_orders.keys())
-                input()
+          
+            call_order = self._all_orders[calls[i]]
+            ask_order = self._all_orders[asks[i]]
+           
 
             assert call_order.is_call
             assert not ask_order.is_call
@@ -295,15 +286,18 @@ class OrderBook(object):
             cs.append(ask_order.id)
             cs.append(ask_order.quantity)
 
-        print(len(cs))
+
 
         cs = ':'.join(str(x) for x in cs)
         cs = binascii.crc32(cs.encode('utf8'))
 
-        print(target & 0xFFFFFFFF)
-        print(cs & 0xFFFFFFFF)
+        try:
+            target & 0xFFFFFFFF == cs & 0xFFFFFFFF
+        except:
+            raise Exception(f"Checksum failure: target:{target & 0xFFFFFFFF}, calc:{cs & 0xFFFFFFFF}")
       
-        input()
+
+    
         return
 
         

@@ -44,7 +44,7 @@ class Handler:
         self._orderbook = orderbook
 
         #Used for debugging purposes allows us to replay historical ticks causing bugs
-        self._log_ticks = False
+        self._log_ticks = True
         
         self._file = 'stream_logs.txt' if self._log_ticks else None
 
@@ -79,6 +79,7 @@ class Handler:
             if message[1] == 'cs':
                 #checksum message found - confirm our orderbook is correct
                 self._orderbook.check_sum(message[2])
+                return
 
             if message[1] == 'hb':
                 #heartbeat received ignore this

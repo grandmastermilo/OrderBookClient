@@ -82,11 +82,7 @@ def test_replay_checkum_failure():
                 #process order
                 handler.on_message(message)
 
-
-
-
         else:
-
             handler.on_message(message)
         
 
