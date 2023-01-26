@@ -124,8 +124,6 @@ class OrderBook(object):
             self._limits[prev_order.price].remove_order(prev_order)
             
             #store the order in the correct limit
-
-            print(order.price)
             self._add_order(order)
 
         return

@@ -110,17 +110,19 @@ class Limit(object):
 
         @param order: 
         """
-
+        print(self._orders)
+        
         if len(self._orders) == 1:
             self._orders.remove(order.id)
             #convert the limit to unknown side
             self._side = Side.UNK
             
-            return False
 
         else:
             self._orders.remove(order.id)
-            return True
+
+
+        print(self._orders)
 
 
 
