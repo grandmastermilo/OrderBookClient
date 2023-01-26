@@ -57,7 +57,7 @@ class OrderBook(object):
         #check if the order exists and requires updating
         if order.id in self._all_orders.keys():
             self._update_order(order)
-
+            return
 
         # add order
         self._add_order(order)
@@ -116,10 +116,6 @@ class OrderBook(object):
 
         #check for limit change
         if not prev_order.price == order.price:
-            print("here ----", order.id)
-
-            input()
-
             # remove order from limit
             self._limits[prev_order.price].remove_order(prev_order)
             
