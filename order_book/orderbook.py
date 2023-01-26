@@ -186,6 +186,16 @@ class OrderBook(object):
                 break
 
 
+    def print_limits(self, limits):
+        #TODO delete me
+
+        for limit in limits:
+            print(self._limits[limit])
+            input()
+
+        return
+
+
     def check_sum(self, target) -> None:
         """
         Method to verify our book is alligned with bitfinex
@@ -236,18 +246,22 @@ class OrderBook(object):
         while len(calls) < 25:
          
             calls += sorted(best_call_limit._orders)
-            
-            best_call_index += 1
 
-            try:
-                best_call_limit = self._limits[limit_prices[best_call_index]]
-            except:
+            if best_call_index == len(limit_prices):
                 #all calls are in the cs
                 break
+            
+            # best_call_index += 1
+
+            # try:
+            #     best_call_limit = self._limits[limit_prices[best_call_index]]
+            # except:
+            #     break
 
             try:
                 assert best_call_limit.is_call or best_call_limit.is_unk
             except:
+                self.print_limits(limit_prices)
                 raise Exception(
                     f'calls, Incorrect limit ordering in book, {best_call_limit}'
                 )
@@ -256,15 +270,20 @@ class OrderBook(object):
             asks += sorted(best_ask_limit._orders)
             best_ask_index -= 1
 
-            try:
-                best_ask_limit = self._limits[limit_prices[best_ask_index]]
-            except:
+
+            if best_ask_index == -1:
                 #all asks are in the cs
                 break
+
+            # try:
+            #     best_ask_limit = self._limits[limit_prices[best_ask_index]]
+            # except:
+            #     break
 
             try:
                 assert not best_ask_limit.is_call or best_ask_limit.is_unk
             except:
+                self.print_limits(limit_prices)
                 raise Exception(
                     f'asks, Incorrect limit ordering in book, {best_ask_limit}'
                 )
@@ -273,18 +292,19 @@ class OrderBook(object):
         asks = asks[:25]
 
         for i in range(25):
-          
-            call_order = self._all_orders[calls[i]]
-            ask_order = self._all_orders[asks[i]]
-           
-
-            assert call_order.is_call
-            assert not ask_order.is_call
             
-            cs.append(call_order.id)
-            cs.append(call_order.quantity)
-            cs.append(ask_order.id)
-            cs.append(ask_order.quantity)
+            if i < len(calls):
+                call_order = self._all_orders[calls[i]]
+                assert call_order.is_call
+                cs.append(call_order.id)
+                cs.append(call_order.quantity)
+
+
+            if i < len(asks):
+                ask_order = self._all_orders[asks[i]]
+                assert not ask_order.is_call
+                cs.append(ask_order.id)
+                cs.append(ask_order.quantity)
 
 
 
